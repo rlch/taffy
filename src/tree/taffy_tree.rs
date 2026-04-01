@@ -243,6 +243,7 @@ impl<NodeContext> PrintTree for TaffyTree<NodeContext> {
 
         match (num_children, display) {
             (_, Display::None) => "NONE",
+            (_, Display::Contents) => "CONTENTS",
             (0, _) => "LEAF",
             #[cfg(feature = "block_layout")]
             (_, Display::Block) => "BLOCK",
@@ -375,6 +376,13 @@ where
             // Dispatch to a layout algorithm based on the node's display style and whether the node has children or not.
             match (display_mode, has_children) {
                 (Display::None, _) => compute_hidden_layout(tree, node),
+                // Contents nodes generate no box. Zero layout, but children are NOT hidden —
+                // they are promoted to this node's parent by TraversePartialTree::child_ids.
+                (Display::Contents, _) => {
+                    tree.set_unrounded_layout(node, &Layout::with_order(0));
+                    tree.cache_clear(node);
+                    LayoutOutput::HIDDEN
+                }
                 #[cfg(feature = "block_layout")]
                 (Display::Block, true) => compute_block_layout(tree, node, inputs),
                 #[cfg(feature = "flexbox")]

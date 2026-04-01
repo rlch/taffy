@@ -178,6 +178,10 @@ pub enum Display {
     /// The children will follow the CSS Grid layout algorithm
     #[cfg(feature = "grid")]
     Grid,
+    /// The node is invisible to layout: it generates no box, and its children
+    /// are laid out as if they were direct children of this node's parent.
+    /// Equivalent to CSS `display: contents`.
+    Contents,
     /// The node is hidden, and it's children will also be hidden
     None,
 }
@@ -210,6 +214,7 @@ impl core::fmt::Display for Display {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Display::None => write!(f, "NONE"),
+            Display::Contents => write!(f, "CONTENTS"),
             #[cfg(feature = "block_layout")]
             Display::Block => write!(f, "BLOCK"),
             #[cfg(feature = "flexbox")]
@@ -589,7 +594,7 @@ impl<S: CheapCloneStr> CoreStyle for Style<S> {
     #[inline(always)]
     fn box_generation_mode(&self) -> BoxGenerationMode {
         match self.display {
-            Display::None => BoxGenerationMode::None,
+            Display::None | Display::Contents => BoxGenerationMode::None,
             _ => BoxGenerationMode::Normal,
         }
     }
